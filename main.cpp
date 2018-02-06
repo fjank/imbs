@@ -46,8 +46,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include "imagemanager.h"
-
 //imbs
 #include "imbs.hpp"
 
@@ -130,21 +128,6 @@ int main(int argc, char* argv[])
 		//input data coming from a video
 		processVideo(argv[2]);
 	}
-	else if(strcmp(argv[1], "-img") == 0) {
-		//input data coming from a sequence of images
-		if (argc > 4) {
-			if (strcmp(argv[3], "-fps") == 0) {
-				fps = atof(argv[4]);
-			}
-			else {
-				fps = 25.;
-			}
-		}
-		else {
-			fps = 25.;
-		}
-		processImages(argv[2]);
-	}
 	else {
 		//error in reading input parameters
 		cerr <<"Please, check the input parameters." << endl;
@@ -161,7 +144,7 @@ int main(int argc, char* argv[])
 */
 void processVideo(char* videoFilename) {
     //create the capture object
-    VideoCapture capture(videoFilename);
+    VideoCapture capture(0);
     if(!capture.isOpened()){
         //error in opening the video input
         cerr << "Unable to open video file: " << videoFilename << endl;
@@ -232,80 +215,6 @@ void processVideo(char* videoFilename) {
     }
     //delete capture object
     capture.release();
-}
-
-/**
-* @function processImages
-* WARNING: this function can read only image sequences in the form
-* <n>.<ext>
-* where <n> is a number without zeros as prefix, e.g., 7
-* and <ext> is the extension provided by command line, e.g., png, jpg, etc.
-* Example of sequence:
-*             1.png, 2.png, ..., 15.png, 16.png, ..., 128.png, 129.png, ...
-*/
-void processImages(char* firstFrameFilename) {	
-
-	string foldername(firstFrameFilename);
-	size_t folder_index = foldername.find_last_of("/");
-    if(folder_index == string::npos) {
-    	folder_index = foldername.find_last_of("\\");
-    }
-    foldername = foldername.substr(0,folder_index+1);
-    
-	ImageManager *im = new ImageManager(foldername);
-
-
-    //read the first file of the sequence
-	string s = im->next();
-
-    frame = imread(foldername+s);
-//fistFrameFilename);
-    if(!frame.data){
-        //error in opening the first image
-        cerr << "Unable to open first image frame: " << foldername+s << endl;
-        exit(EXIT_FAILURE);
-    }
-    //IMBS Background Subtractor
-    BackgroundSubtractorIMBS* pIMBS;
-    pIMBS = new BackgroundSubtractorIMBS(fps);
-    
-    //read input data. ESC or 'q' for quitting
-    while( (char)keyboard != 'q' && (char)keyboard != 27 ){
-    	//update the background model
-    	pIMBS->apply(frame, fgMask);
-    	//get background image
-    	pIMBS->getBackgroundImage(bgImage);
-        //get the frame number and write it on the current frame
-        
-        
-		ostringstream oss;
-        oss << im->getCount();
-        string frameNumberString = oss.str();
-
-
-        rectangle(frame, cv::Point(10, 2), cv::Point(100,20),
-                  cv::Scalar(255,255,255), -1);
-        putText(frame, frameNumberString.c_str(), cv::Point(15, 15),
-                FONT_HERSHEY_SIMPLEX, 0.5 , cv::Scalar(0,0,0));
-        //show the current frame and the fg masks
-        imshow("Frame", frame);
-        imshow("FG Mask", fgMask);
-        imshow("BG Model", bgImage);
-        //get the input from the keyboard
-        keyboard = waitKey( 30 );
-        //search for the next image in the sequence
-        
-        
-        //read the next frame
-        s = im->next();
-        frame = imread(foldername+s);
-        if(!frame.data){
-            //error in opening the next image in the sequence
-            cerr << "Unable to open image frame: " << foldername+s << endl;
-            exit(EXIT_FAILURE);
-        }
-        
-    }
 }
 
 void onmouse(int event, int x, int y, int flags, void* data)

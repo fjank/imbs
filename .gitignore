@@ -1,0 +1,11 @@
+.idea/
+cppbuild/
+.gradle/
+build/
+*.dll
+*.lib
+*.exp
+*.obj
+out/
+output.txt
+

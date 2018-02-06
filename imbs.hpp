@@ -79,6 +79,9 @@ public:
     //! the update operator
     void apply(InputArray image, OutputArray fgmask, double learningRate=-1.);
 
+    // returns true if the model is ready, false otherwise.
+    bool BackgroundSubtractorIMBS::isReady();
+
     //! computes a background image which shows only the highest bin for each pixel
     void getBackgroundImage(OutputArray backgroundImage) const;
 

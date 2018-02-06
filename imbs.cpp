@@ -235,7 +235,9 @@ void BackgroundSubtractorIMBS::apply(InputArray _frame, OutputArray _fgmask, dou
 	}
     ++nframes;
 }
-
+bool BackgroundSubtractorIMBS::isReady() {
+    return bgModel[0].isValid[0];
+}
 void BackgroundSubtractorIMBS::updateBg() {
 	if(bg_reset) {
 		if(bg_frame_counter > numSamples - 1) {
@@ -275,7 +277,7 @@ void BackgroundSubtractorIMBS::hsvSuppression() {
 	float h_diff, s_diff, v_ratio;
 
 	Mat bgrPixel(cv::Size(1, 1), CV_8UC3);
-	
+
 	vector<Mat> imHSV;
 	cv::split(convertImageRGBtoHSV(frame), imHSV);
 

@@ -1,0 +1,40 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+sourceCompatibility = 1.8
+
+task wrapper(type: Wrapper) {
+    gradleVersion '2.14' // 2016-07-13 : 2.14
+}
+group = 'org.fjank'
+version = '3.1-1.3'
+
+jar {
+    classifier = 'windows-x86_64'
+}
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compile 'org.bytedeco:javacpp:1.3'
+    compile 'org.bytedeco:javacv:1.3'
+}
+compileJava.doLast {
+    tasks.createJniWrapper.execute()
+    tasks.copyDLLs.execute()
+}
+task createJniWrapper(type: JavaExec) {
+    main = 'org.bytedeco.javacpp.tools.Builder'
+    classpath = sourceSets.main.runtimeClasspath
+    args '-d', '.', '-o', 'jni_imbs_310', 'org.fjank.imbs.Imbs'
+}
+task copyDLLs(dependsOn: createJniWrapper, type: Copy) {
+    from 'imbs_310.dll'
+    from 'jni_imbs_310.dll'
+    into 'src/main/resources/org/fjank/imbs/windows-x86_64'
+}
